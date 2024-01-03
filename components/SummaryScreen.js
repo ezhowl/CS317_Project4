@@ -42,10 +42,16 @@ const SummaryScreen = ({ onPathSelect }) => {
       ]
     );
   };
-
+  
   const deletePath = async (pathObj) => {
-    await PathStore.deletePath(pathObj);
-    setPaths(paths.filter(p => p.startTime !== pathObj.startTime));
+    try {
+      await PathStore.deletePath(pathObj);
+      const updatedPaths = paths.filter(p => p.startTime !== pathObj.startTime);
+      setPaths(updatedPaths);
+    } catch (error) {
+      console.error("Error deleting path:", error);
+      Alert.alert("Error", "Failed to delete path.");
+    }
   };
 
   const renderItem = ({ item }) => (

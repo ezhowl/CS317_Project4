@@ -24,12 +24,12 @@ const initialRegion = calculateInitialRegion(coords);
 const startCoord = path.coords && path.coords.length > 0 ? path.coords[0] : null;
 const stopCoord = path.coords && path.coords.length > 0 ? path.coords[path.coords.length - 1] : null;
 const spotMarkers = path.spots && path.spots.length > 0 ? path.spots.map((spot, index) => (
-    <Marker
-      key={index}
-      coordinate={spot.coord}
-      title={spot.title}
-      description={`${spot.moreInfo}, Time: ${new Date(spot.time).toLocaleString()}`}
-    />
+  <Marker
+    key={index}
+    coordinate={spot.coord}
+    title={spot.title}
+    description={`${spot.info}, Time: ${new Date(spot.time).toLocaleString()}`}
+  />
 )) : [];
 
 
