@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Button, TextInput, Alert, Modal } from 'react-native';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { pathDistanceInMeters } from '../distance';
 import * as PathStore from '../PathStore';
-import PathView from './PathView';
+
+//currentLocation is blue, spots is green, 
 
 const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
   const [isRecording, setIsRecording] = useState(false);
@@ -55,10 +57,6 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
 
   const stopRecording = () => {
     setIsRecording(false);
-    const endTime = new Date().toISOString();
-    setStopTime(endTime);
-
-    const pathDistance = calculatePathDistance(path); 
 
     Alert.alert(
       "Recording Complete",
@@ -69,13 +67,14 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
           onPress: () => clearRecording(),
           style: "cancel"
         },
-        { text: "Save", onPress: () => promptForPathName(pathDistance, endTime) }
+        { text: "Save", onPress: () => promptForPathName() }
       ],
       { cancelable: false }
     );
+    setStopTime(new Date().toISOString());
   };
 
-  const promptForPathName = (pathDistance, endTime) => {
+  const promptForPathName = () => {
     Alert.prompt(
       "Save Path",
       "Enter a name for your path:",
@@ -87,20 +86,20 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
         },
         {
           text: "Save",
-          onPress: (name) => handleSavePath(name, pathDistance, endTime),
+          onPress: (name) => handleSavePath(name),
         },
       ],
       'plain-text'
     );
   };
 
-  const handleSavePath = (name, pathDistance, endTime) => {
+  const handleSavePath = (name) => {
     if (existingPathNames.includes(name)) {
       Alert.alert("Name Already Exists", "Please choose a different name.", [
         { text: "OK", onPress: () => promptForPathName() }
       ]);
     } else {
-      const newPath = createPathObject(name, pathDistance, endTime);
+      const newPath = createPathObject(name);
         PathStore.storePath(newPath) // Save the path to persistent storage
             .then(() => {
                 onRecordingComplete(newPath); // Update the state in the parent component
@@ -113,15 +112,23 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     }
   };
 
-  const createPathObject = (name, pathDistance, stopTime) => {
-    return {
-      name,
-      startTime,
-      stopTime,
-      pathDistance,
-      spots,
-      coords: path
+  const createPathObject = (name) => {
+    const startTime = new Date().toISOString(); // Assuming recording starts now; adjust as needed
+    const stopTime = new Date().toISOString(); // Adjust to actual stop time
+
+    // Calculate path distance (assuming you have a method to do this)
+    const pathDistance = calculatePathDistance(path); // Replace with your actual calculation method
+
+    const pathObject = {
+        name: name,
+        startTime: startTime,
+        stopTime: stopTime,
+        pathDistance: pathDistance,
+        spots: spots,
+        coords: path
     };
+
+    return pathObject;
   };
 
   //paramters is array of coordinates forming the path, returns number - Total distance of the path in meters.
@@ -133,11 +140,11 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
   };
 
   const clearRecording = () => {
+    // Clear the recording-related state
     setPath([]);
     setSpots([]);
     setCurrentLocation(null);
-    setStartTime(null);
-    setStopTime(null);
+    // Any additional cleanup
   };
 
   useEffect(() => {
@@ -158,22 +165,62 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
 
   return (
     <View style={styles.container}>
-      <PathView
-        path={path}
-        spots={spots}
-        isRecording={isRecording}
-        startTime={startTime}
-        stopTime={stopTime}
+      <MapView style={styles.map} showsUserLocation={true}>
+        {currentLocation && (
+          <Marker 
+            coordinate={currentLocation} 
+            title="Me" 
+            pinColor="blue"
+        />)}
+        {path.length > 0 && (
+          <Polyline coordinates={path} strokeWidth={3} strokeColor="blue" />
+        )}
+        {path.length > 0 && (
+          <Marker
+            coordinate={path[0]}
+            title="Start"
+            description={`Started: ${new Date(startTime).toLocaleString()}`}
+            pinColor="red"
+          />
+        )}
+        {stopTime && path.length > 0 && (
+          <Marker
+            coordinate={path[path.length - 1]}
+            title="Finish"
+            description={`Stopped: ${new Date(stopTime).toLocaleString()}\nDistance: ${calculatePathDistance(path).toFixed(2)} meters`}
+            pinColor="red"
+          />
+        )}
+        {spots.map((spot, index) => (
+          <Marker
+            key={index}
+            coordinate={spot.coord}
+            title={spot.title}
+            description={`${new Date(spot.time).toLocaleString()}: ${spot.info}`}
+            pinColor="green" // Different color for spot markers
+          />
+        ))}
+      </MapView>
+
+      <Button
+        title="Start Recording"
+        onPress={startRecording}
+        disabled={isRecording}
       />
-      <Button title="Start Recording" onPress={startRecording} disabled={isRecording} />
-      <Button title="Stop Recording" onPress={stopRecording} disabled={!isRecording} />
+      <Button
+        title="Stop Recording"
+        onPress={stopRecording}
+        disabled={!isRecording}
+      />
       <Button title="Add Spot" onPress={addSpot} disabled={!isRecording} />
 
       <Modal
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {setModalVisible(!modalVisible);}}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
       >
         <View style={styles.modalView}>
           <TextInput
@@ -198,6 +245,9 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  map: {
     flex: 1,
   },
   modalView: {
