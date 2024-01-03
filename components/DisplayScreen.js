@@ -5,6 +5,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import MapView, { Polyline, Marker } from 'react-native-maps';
 import { pathDistanceInMeters } from '../distance'; // Import the function
 
+
 const DisplayScreen = ({ path }) => {
   if (!path) {
     return <Text>No path selected</Text>;
@@ -78,6 +79,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     textAlign: 'center',
     margin: 10,
+    paddingTop: 50,
   },
   map: {
     flex: 1,

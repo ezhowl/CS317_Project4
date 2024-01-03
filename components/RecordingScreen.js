@@ -5,6 +5,8 @@ import * as Location from 'expo-location';
 import { pathDistanceInMeters } from '../distance';
 import * as PathStore from '../PathStore';
 
+//currentLocation is blue, spots is green, 
+
 const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [path, setPath] = useState([]);
@@ -13,6 +15,8 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [spotTitle, setSpotTitle] = useState('');
   const [spotInfo, setSpotInfo] = useState('');
+  const [startTime, setStartTime] = useState(null);
+  const [stopTime, setStopTime] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -31,6 +35,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     const location = await Location.getCurrentPositionAsync({});
     setCurrentLocation(location.coords);
     setPath([location.coords]);
+    setStartTime(new Date().toISOString());
   };
 
   const addSpot = () => {
@@ -66,6 +71,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
       ],
       { cancelable: false }
     );
+    setStopTime(new Date().toISOString());
   };
 
   const promptForPathName = () => {
@@ -160,9 +166,30 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
   return (
     <View style={styles.container}>
       <MapView style={styles.map} showsUserLocation={true}>
-        {currentLocation && <Marker coordinate={currentLocation} title="Me" />}
+        {currentLocation && (
+          <Marker 
+            coordinate={currentLocation} 
+            title="Me" 
+            pinColor="blue"
+        />)}
         {path.length > 0 && (
           <Polyline coordinates={path} strokeWidth={3} strokeColor="blue" />
+        )}
+        {path.length > 0 && (
+          <Marker
+            coordinate={path[0]}
+            title="Start"
+            description={`Started: ${new Date(startTime).toLocaleString()}`}
+            pinColor="red"
+          />
+        )}
+        {stopTime && path.length > 0 && (
+          <Marker
+            coordinate={path[path.length - 1]}
+            title="Finish"
+            description={`Stopped: ${new Date(stopTime).toLocaleString()}\nDistance: ${calculatePathDistance(path).toFixed(2)} meters`}
+            pinColor="red"
+          />
         )}
         {spots.map((spot, index) => (
           <Marker
@@ -170,6 +197,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
             coordinate={spot.coord}
             title={spot.title}
             description={`${new Date(spot.time).toLocaleString()}: ${spot.info}`}
+            pinColor="green" // Different color for spot markers
           />
         ))}
       </MapView>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Button } from 'react-native';
 import * as PathStore from '../PathStore';
 import samplePaths from '../samplePaths';
 
@@ -20,7 +20,10 @@ const SummaryScreen = ({ onPathSelect }) => {
   const sortPaths = (pathsArray, sortBy) => {
     return pathsArray.sort((a, b) => {
       if (sortBy === 'name') {
-        return a.name.localeCompare(b.name);
+        // Check if name properties exist and are not undefined
+        const nameA = a.name || '';
+        const nameB = b.name || '';
+        return nameA.localeCompare(nameB);
       } else if (sortBy === 'startTime') {
         return new Date(a.startTime) - new Date(b.startTime);
       } else if (sortBy === 'pathDistance') {
@@ -59,6 +62,11 @@ const SummaryScreen = ({ onPathSelect }) => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.sortButtons}>
+        <Button title="Sort by Name" onPress={() => setSortType('name')} />
+        <Button title="Sort by Date" onPress={() => setSortType('startTime')} />
+        <Button title="Sort by Distance" onPress={() => setSortType('pathDistance')} />
+      </View>
       <FlatList
         data={paths}
         renderItem={renderItem}
@@ -68,9 +76,19 @@ const SummaryScreen = ({ onPathSelect }) => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  sortButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#eee',
+    paddingVertical: 10,
+    paddingTop: 50,  // Add padding to the top
+    // If needed, add margin as well
+    // marginTop: 20,
   },
   item: {
     backgroundColor: '#f9c2ff',
@@ -82,5 +100,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
 });
-
 export default SummaryScreen;
