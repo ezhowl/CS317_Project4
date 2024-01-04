@@ -7,13 +7,16 @@ import * as PathStore from './PathStore';
 import samplePaths from './samplePaths';
 
 
+/**
+ * This is the main component of this app. It manages the navigation between the 3 different screens
+ * and handles the states related to paths.
+ */
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('Summary');
   const [paths, setPaths] = useState([]);
   const [selectedPath, setSelectedPath] = useState(null);
-  //const [recordedPaths, setRecordedPaths] = useState([]);
   
-
+  // this initializes paths from persistent storage and combines them with sample paths
   useEffect(() => {
     async function addPersistentPaths() {
       const persistentPaths = await PathStore.init();
@@ -23,37 +26,23 @@ const App = () => {
     addPersistentPaths();
   }, []);
   
-  // Function to handle path selection
+  // Combines persistent paths with sample paths and updates the state
+  function combineWithSamplePaths(persistentPaths) {
+    const combinedPaths = [...samplePaths, ...persistentPaths];
+    setPaths(combinedPaths);
+}
+  // Navigates to the Display screen with the selected path
   const handlePathSelect = (path) => {
     setSelectedPath(path);
     setCurrentScreen('Display');
   };
 
+  // Handles completion of recording, saving the new path and navigating to Summary screen
   const handleRecordingComplete = (newPath) => {
     PathStore.storePath(newPath);
     setPaths([...paths, newPath]);
     setCurrentScreen('Summary');
   };
-
-  // Define a function to combine persistent paths with sample paths
-  function combineWithSamplePaths(persistentPaths) {
-    // Combine the persistent paths with the sample paths
-    const combinedPaths = [...samplePaths, ...persistentPaths];
-    setPaths(combinedPaths);
-  }
-
-  const existingPathNames = paths.map(path => path.name);
-
-  // const handleLocationUpdate = (annotatedPath) => {
-  //   // Save the annotated path using PathStore
-  //   PathStore.savePath(annotatedPath);
-  
-  //   // Update the recordedPaths state with the saved path
-  //   setRecordedPaths([...recordedPaths, annotatedPath]);
-  // };
-  
-
-  
 
   // Logic to switch between pseudoScreens
   const renderScreen = () => {
@@ -93,30 +82,3 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-
-
-
-//   return (
-//     <View style={styles.container}>
-//       {currentScreen === 'Recording' ? (
-//         <RecordingScreen
-//           isRecording={isRecording}
-//           setIsRecording={setIsRecording}
-//           currentLocation={currentLocation}
-//           handleLocationUpdate={handleLocationUpdate}
-//         />
-//       ) : (
-//         renderScreen()
-//       )}
-//     </View>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-    
-//   },
-// });
-
-// export default App;

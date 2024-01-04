@@ -2,6 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import PathView from './PathView';
 
+
+/**
+ * DisplayScreen component is responsible for displaying the selected path.
+ * It shows the path's details and renders the PathView component.
+ * @param {Object} path - The path object to be displayed.
+ */
 const DisplayScreen = ({ path }) => {
   if (!path) {
     return <Text style={styles.noPathText}>No path selected</Text>;

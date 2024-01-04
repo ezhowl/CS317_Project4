@@ -5,6 +5,12 @@ import { pathDistanceInMeters } from '../distance';
 import * as PathStore from '../PathStore';
 import PathView from './PathView';
 
+/**
+ * RecordingScreen component is responsible for handling path recording
+ * It allows users to start/stop recording, add spots, and save/delete the recorded path.
+ * @param {function} onRecordingComplete - Callback function to handle the completion of recording.
+ * @param {Array} existingPathNames - Array of existing path names to avoid name conflicts.
+ */
 const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [path, setPath] = useState([]);
@@ -16,6 +22,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
   const [startTime, setStartTime] = useState(null);
   const [stopTime, setStopTime] = useState(null);
 
+  // Requesting location permissions
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -26,6 +33,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     })();
   }, []);
 
+  // Function to start recording a new path
   const startRecording = async () => {
     setIsRecording(true);
     setPath([]);
@@ -36,10 +44,12 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     setStartTime(new Date().toISOString());
   };
 
+  // Function to add a new spot
   const addSpot = () => {
     setModalVisible(true);
   };
 
+  // Function to save a new spot
   const saveSpot = () => {
     const newSpot = {
       title: spotTitle,
@@ -53,6 +63,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     setModalVisible(false);
   };
 
+  // Function to stop recording
   const stopRecording = () => {
     setIsRecording(false);
     const endTime = new Date().toISOString();
@@ -75,6 +86,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     );
   };
 
+  // Function to prompt user for path name before saving
   const promptForPathName = (pathDistance, endTime) => {
     Alert.prompt(
       "Save Path",
@@ -94,6 +106,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     );
   };
 
+  // Function to handle path saving
   const handleSavePath = (name, pathDistance, endTime) => {
     if (existingPathNames.includes(name)) {
       Alert.alert("Name Already Exists", "Please choose a different name.", [
@@ -113,6 +126,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     }
   };
 
+  // Function to create a new path object
   const createPathObject = (name, pathDistance, stopTime) => {
     return {
       name,
@@ -124,14 +138,13 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     };
   };
 
-  //paramters is array of coordinates forming the path, returns number - Total distance of the path in meters.
-
+  // Function to calculate the total distance of the path
   const calculatePathDistance = (coords) => {
-    // Calculate the distance using the pathDistanceInMeters function
     const totalDistanceMeters = pathDistanceInMeters(coords);
     return totalDistanceMeters; // Return the distance in meters
   };
 
+  // Function to clear the current recording
   const clearRecording = () => {
     setPath([]);
     setSpots([]);
@@ -140,6 +153,7 @@ const RecordingScreen = ({ onRecordingComplete, existingPathNames }) => {
     setStopTime(null);
   };
 
+  // Function to update location in real-time while recording
   useEffect(() => {
     if (isRecording) {
       const subscription = Location.watchPositionAsync(

@@ -3,6 +3,10 @@ import { View, Text, FlatList, StyleSheet, TouchableOpacity, Alert, Button } fro
 import * as PathStore from '../PathStore';
 import samplePaths from '../samplePaths';
 
+/**
+ * SummaryScreen component for displaying a list of paths with sorting and deletion options.
+ * @param {Function} onPathSelect - Callback for selecting a path.
+ */
 const SummaryScreen = ({ onPathSelect }) => {
   const [paths, setPaths] = useState([]);
   const [sortType, setSortType] = useState('startTime'); // default sort by start time
@@ -17,6 +21,7 @@ const SummaryScreen = ({ onPathSelect }) => {
     loadPaths();
   }, [sortType]);
 
+  // Function to sort paths based on user selection
   const sortPaths = (pathsArray, sortBy) => {
     return pathsArray.sort((a, b) => {
       if (sortBy === 'name') {
@@ -32,6 +37,7 @@ const SummaryScreen = ({ onPathSelect }) => {
     });
   };
 
+  // Function to confirm path deletion
   const confirmDeletion = (pathObj) => {
     Alert.alert(
       "Delete Path",
@@ -43,6 +49,7 @@ const SummaryScreen = ({ onPathSelect }) => {
     );
   };
   
+  // Function to delete a path
   const deletePath = async (pathObj) => {
     try {
       await PathStore.deletePath(pathObj);
@@ -92,9 +99,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: '#eee',
     paddingVertical: 10,
-    paddingTop: 50,  // Add padding to the top
-    // If needed, add margin as well
-    // marginTop: 20,
+    paddingTop: 50,
   },
   item: {
     backgroundColor: '#f9c2ff',
